@@ -85,7 +85,10 @@ namespace GeneralStore.Controllers
                     oldTransaction.ProductId = newTransaction.ProductId;
                     oldTransaction.PurchaseQuantity = newTransaction.PurchaseQuantity;
                     oldTransaction.CustomerId = newTransaction.CustomerId;
-
+                    if(newTransaction.DateOfTransaction != null)
+                    {
+                        oldTransaction.DateOfTransaction = newTransaction.DateOfTransaction;
+                    }
                     await _context.SaveChangesAsync();
                     return Ok(oldTransaction);
                 }
