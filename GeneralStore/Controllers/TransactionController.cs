@@ -57,5 +57,41 @@ namespace GeneralStore.Controllers
             }
             return Ok(transaction);
         }
+
+        [HttpPut]
+        public async Task<IHttpActionResult> UpdateTransaction([FromUri] int id, [FromBody] Transaction newTransaction)
+        {
+            if (ModelState.IsValid)
+            {
+                Product product = await _context.Products.FindAsync(newTransaction.ProductId);
+                if (product == null)
+                {
+                    return BadRequest("Invalid product Id");
+                }
+
+                Customer customer = await _context.Customers.FindAsync(newTransaction.CustomerId);
+                if (customer == null)
+                {
+                    return BadRequest("Invalid Customer Id");
+                }
+
+                Transaction oldTransaction = await _context.Transactions.FindAsync(id);
+                if (oldTransaction != null)
+                {
+                    int difference = oldTransaction.PurchaseQuantity - newTransaction.PurchaseQuantity;
+                    if (difference > product.Quantity) return BadRequest($"There are only {product.Quantity} left in stock");
+
+                    product.Quantity += difference;
+                    oldTransaction.ProductId = newTransaction.ProductId;
+                    oldTransaction.PurchaseQuantity = newTransaction.PurchaseQuantity;
+                    oldTransaction.CustomerId = newTransaction.CustomerId;
+
+                    await _context.SaveChangesAsync();
+                    return Ok(oldTransaction);
+                }
+                return NotFound();
+            }
+            return BadRequest(ModelState);
+        }
     }
 }
